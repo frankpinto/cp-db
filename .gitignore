@@ -1,1 +1,4 @@
+.ruby-version
+.ruby-gemset
 .env
+tmp/
