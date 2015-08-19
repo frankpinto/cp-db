@@ -2,12 +2,14 @@ GEM
   remote: https://rubygems.org/
   specs:
     dotenv (2.0.2)
+    ruby-progressbar (1.7.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   dotenv
+  ruby-progressbar
 
 BUNDLED WITH
    1.10.6
