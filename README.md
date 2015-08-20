@@ -5,13 +5,13 @@ As developers we often need to push and pull databases around. From production t
 ### Setup
 First get it:
 
-```bash
+```sh
 git clone https://github.com/frankpinto/cp-db.git
 ```
 
 Then set it up:
 
-```ruby
+```sh
 rake setup
 ```
 
@@ -21,13 +21,13 @@ Fill in .env as per the instructions, DATABASE_URL is for production, the rest o
 ### Usage
 To download the entire database dump:
 
-```ruby
+```sh
 rake down
 ```
 
 To load it into local:
 
-```ruby
+```sh
 rake load
 ```
 
