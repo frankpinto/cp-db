@@ -15,23 +15,13 @@ end
 directory 'tmp'
 
 desc 'Download production postgres'
-task down: [:dotenv, 'tmp', '.env']  do |t|
+task down: [:dotenv, 'tmp', '.env'] do |t|
   IO.popen(['pg_dump', '--verbose', '--format=c', '--file=tmp/production_postgresql.dump', '--table=countries', ENV['DATABASE_URL']], err: [:child, 1]) do |f|
-    options = {
-      total: 30,
-      autofinish: false,
-      length: 115,
-      throttle_rate: 0.0001
-    }
 
-    reading_system = ProgressBar.create options.merge(title: 'Reading system')
-    puts
-    finding = ProgressBar.create options.merge(title: 'Finding columns, types, etc.', total: 50)
-    puts
-    reading_indexes = ProgressBar.create options.merge(title: 'Reading indexes')
-    puts
-    dumping = ProgressBar.create options.merge(title: 'Dumping tables', total: 50)
-    puts
+    reading_system = bar_create(title: 'Reading system')
+    finding = bar_create(title: 'Finding columns, types, etc.', total: 50)
+    reading_indexes = bar_create(title: 'Reading indexes')
+    dumping = bar_create(title: 'Dumping tables', total: 50)
     puts
 
     while (out = f.gets)
@@ -67,6 +57,36 @@ task down: [:dotenv, 'tmp', '.env']  do |t|
     puts
   end
   puts 'Done.'
+end
+
+desc 'Load production db dump into local'
+task load: [:dotenv, 'tmp', '.env']  do |t|
+  cli_args = [
+    '-cO',
+    "--dbname=#{ENV['PGDATABASE']}",
+    "--username=#{ENV['PGUSER']}",
+  ]
+
+  # Its possible to connect through socket / user map
+  cli_args.merge! "--host=#{ENV['PGHOST']}" unless ENV['PGHOST'].nil? || ENV['PGHOST'] == ''
+  cli_args.merge! "--port=#{ENV['PGPORT']}" unless ENV['PGPORT'].nil? || ENV['PGPORT'] == ''
+  cli_args.merge! "PGPASSWORD=#{ENV['PGPASSWORD']}" unless ENV['PGPASSWORD'].nil? || ENV['PGPASSWORD'] == ''
+
+  sh 'pg_restore', *cli_args, 'tmp/production_postgresql.dump'
+end
+
+def bar_create overrides = {}
+    options = {
+      total: 30,
+      autofinish: false,
+      length: 115,
+      throttle_rate: 0.0001
+    }
+
+    bar = ProgressBar.create options.merge(overrides)
+    puts
+
+    bar
 end
 
 def bar_refresh progress_bar, options = {refresh: true}
