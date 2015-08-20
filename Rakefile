@@ -16,12 +16,6 @@ directory 'tmp'
 
 desc 'Download production postgres'
 task down: [:dotenv, 'tmp', '.env']  do |t|
-  # Get production credentials from .env
-  # Use pg_backup to get a local copy of the production database
-  # Get local credentials from .env
-  # Load the production database into local db
-
-
   IO.popen(['pg_dump', '--verbose', '--format=c', '--file=tmp/production_postgresql.dump', '--table=countries', ENV['DATABASE_URL']], err: [:child, 1]) do |f|
     options = {
       total: 30,
@@ -43,46 +37,27 @@ task down: [:dotenv, 'tmp', '.env']  do |t|
     while (out = f.gets)
       case out
       when /(reading indexes)|(reading triggers)|(reading foreign)/
-        reading_system.refresh
-        puts
-        finding.refresh
-        puts
-        reading_indexes.increment
-        puts
-        dumping.refresh
-        puts
-        puts
+        bar_refresh reading_system
+        bar_refresh finding
+        bar_refresh reading_indexes.increment, refresh: false
+        bar_refresh dumping
       when /finding/
-        reading_system.refresh
-        puts
-        finding.increment
-        puts
-        reading_indexes.refresh
-        puts
-        dumping.refresh
-        puts
-        puts
+        bar_refresh reading_system
+        bar_refresh finding.increment, refresh: false
+        bar_refresh reading_indexes
+        bar_refresh dumping
       when /reading|saving/
-        reading_system.increment
-        puts
-        finding.refresh
-        puts
-        reading_indexes.refresh
-        puts
-        dumping.refresh
-        puts
-        puts
+        bar_refresh reading_system.increment, refresh: false
+        bar_refresh finding
+        bar_refresh reading_indexes
+        bar_refresh dumping
       when /dumping/
-        reading_system.refresh
-        puts
-        finding.refresh
-        puts
-        reading_indexes.refresh
-        puts
-        dumping.increment
-        puts
-        puts
+        bar_refresh reading_system
+        bar_refresh finding
+        bar_refresh reading_indexes
+        bar_refresh dumping.increment, refresh: false
       end
+      puts
     end
 
     reading_system.finish
@@ -92,4 +67,15 @@ task down: [:dotenv, 'tmp', '.env']  do |t|
     puts
   end
   puts 'Done.'
+end
+
+def bar_refresh progress_bar, options = {refresh: true}
+  progress_bar.refresh if options[:refresh]
+  puts
+end
+
+def refresh_all *bars
+  bars.each do |bar|
+    bar_refresh bar
+  end
 end
