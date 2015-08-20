@@ -3,7 +3,8 @@ require 'ruby-progressbar'
 
 task default: %w(.env)
 
-task setup: %w(.env)
+desc 'Setup necessary files and folders'
+task setup: %w(tmp .env)
 
 desc 'Copy .env.example to .env'
 file '.env' do |t|
