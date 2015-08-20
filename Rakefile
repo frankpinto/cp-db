@@ -21,21 +21,27 @@ task down: [:dotenv, 'tmp', '.env']  do |t|
   # Load the production database into local db
 
 
-  IO.popen(['pg_dump', '--verbose', '--format=c', '--file=tmp/production_postgresql.dump', '--table=urls', ENV['DATABASE_URL']], err: [:child, 1]) do |f|
-    reading_system = ProgressBar.create title: 'Reading system', total: 29, autofinish: false, length: 115
+  IO.popen(['pg_dump', '--verbose', '--format=c', '--file=tmp/production_postgresql.dump', '--table=countries', ENV['DATABASE_URL']], err: [:child, 1]) do |f|
+    options = {
+      total: 30,
+      autofinish: false,
+      length: 115,
+      throttle_rate: 0.0001
+    }
+
+    reading_system = ProgressBar.create options.merge(title: 'Reading system')
     puts
-    finding = ProgressBar.create title: 'Finding columns, types, etc.', total: 50, autofinish: false, length: 115
+    finding = ProgressBar.create options.merge(title: 'Finding columns, types, etc.', total: 50)
     puts
-    reading_indexes = ProgressBar.create title: 'Reading indexes', total: 30, autofinish: false, length: 115
+    reading_indexes = ProgressBar.create options.merge(title: 'Reading indexes')
     puts
-    dumping = ProgressBar.create title: 'Dumping tables', total: 50, autofinish: false, length: 115
+    dumping = ProgressBar.create options.merge(title: 'Dumping tables', total: 50)
     puts
     puts
 
     while (out = f.gets)
       case out
       when /(reading indexes)|(reading triggers)|(reading foreign)/
-        puts out
         reading_system.refresh
         puts
         finding.refresh
@@ -46,37 +52,35 @@ task down: [:dotenv, 'tmp', '.env']  do |t|
         puts
         puts
       when /finding/
-        # reading_system.refresh
-        # puts
-        # finding.increment
-        # puts
-        # reading_indexes.refresh
-        # puts
-        # dumping.refresh
-        # puts
-        # puts
+        reading_system.refresh
+        puts
+        finding.increment
+        puts
+        reading_indexes.refresh
+        puts
+        dumping.refresh
+        puts
+        puts
       when /reading|saving/
-        # reading_system.increment
-        # puts
-        # finding.refresh
-        # puts
-        # reading_indexes.refresh
-        # puts
-        # dumping.refresh
-        # puts
-        # puts
+        reading_system.increment
+        puts
+        finding.refresh
+        puts
+        reading_indexes.refresh
+        puts
+        dumping.refresh
+        puts
+        puts
       when /dumping/
-        # reading_system.refresh
-        # puts
-        # finding.refresh
-        # puts
-        # reading_indexes.refresh
-        # puts
-        # dumping.increment
-        # puts
-        # puts
-      else
-        # Do nothing
+        reading_system.refresh
+        puts
+        finding.refresh
+        puts
+        reading_indexes.refresh
+        puts
+        dumping.increment
+        puts
+        puts
       end
     end
 
