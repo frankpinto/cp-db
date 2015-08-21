@@ -16,7 +16,20 @@ directory 'tmp'
 
 desc 'Download production postgres'
 task down: [:dotenv, 'tmp', '.env'] do |t|
-  IO.popen(['pg_dump', '--verbose', '--format=c', '--file=tmp/production_postgresql.dump', '--table=countries', ENV['DATABASE_URL']], err: [:child, 1]) do |f|
+  cli_args = [
+    '--verbose',
+    '--format=c',
+    '--file=tmp/production_postgresql.dump',
+  ]
+
+  if tables = ENV['TABLE'] || ENV['TABLES']
+    tables = tables.split ','
+    tables.each do |table|
+      cli_args << '--table=' + table
+    end
+  end
+
+  IO.popen(['pg_dump', *cli_args, ENV['DATABASE_URL']], err: [:child, 1]) do |f|
 
     reading_system = bar_create(title: 'Reading system')
     finding = bar_create(title: 'Finding columns, types, etc.', total: 50)
@@ -68,11 +81,10 @@ task load: [:dotenv, 'tmp', '.env']  do |t|
   ]
 
   # Its possible to connect through socket / user map
-  cli_args.merge! "--host=#{ENV['PGHOST']}" unless ENV['PGHOST'].nil? || ENV['PGHOST'] == ''
-  cli_args.merge! "--port=#{ENV['PGPORT']}" unless ENV['PGPORT'].nil? || ENV['PGPORT'] == ''
-  cli_args.merge! "PGPASSWORD=#{ENV['PGPASSWORD']}" unless ENV['PGPASSWORD'].nil? || ENV['PGPASSWORD'] == ''
+  cli_args <<  "--host=#{ENV['PGHOST']}" unless ENV['PGHOST'].nil? || ENV['PGHOST'] == ''
+  cli_args << "--port=#{ENV['PGPORT']}" unless ENV['PGPORT'].nil? || ENV['PGPORT'] == ''
 
-  sh 'pg_restore', *cli_args, 'tmp/production_postgresql.dump'
+  sh "PGPASSWORD=#{ENV['PGPASSWORD']} pg_restore #{cli_args.join(' ')} tmp/production_postgresql.dump"
 end
 
 def bar_create overrides = {}
