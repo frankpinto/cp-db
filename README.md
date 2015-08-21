@@ -3,10 +3,12 @@ As developers we often need to push and pull databases around. From production t
 
 
 ### Setup
-First get it:
+First get it (make sure Bundler is installed):
 
 ```sh
 git clone https://github.com/frankpinto/cp-db.git
+cd cp-db
+bundle
 ```
 
 Then set it up:
