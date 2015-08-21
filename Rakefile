@@ -84,7 +84,10 @@ task load: [:dotenv, 'tmp', '.env']  do |t|
   cli_args <<  "--host=#{ENV['PGHOST']}" unless ENV['PGHOST'].nil? || ENV['PGHOST'] == ''
   cli_args << "--port=#{ENV['PGPORT']}" unless ENV['PGPORT'].nil? || ENV['PGPORT'] == ''
 
-  sh "PGPASSWORD=#{ENV['PGPASSWORD']} pg_restore #{cli_args.join(' ')} tmp/production_postgresql.dump"
+  command = "pg_restore #{cli_args.join(' ')} tmp/production_postgresql.dump"
+  command = "PGPASSWORD=#{ENV['PGPASSWORD']} " + command unless ENV['PGPASSWORD'].nil? || ENV['PGPASSWORD'] == ''
+
+  sh command
 end
 
 def bar_create overrides = {}
