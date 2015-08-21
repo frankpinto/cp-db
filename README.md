@@ -25,6 +25,12 @@ To download the entire database dump:
 rake down
 ```
 
+To download only specific tables pass them as an environment variable and separate them by commas
+
+```sh
+TABLES=urls,products rake down
+```
+
 To load it into local:
 
 ```sh
@@ -33,6 +39,5 @@ rake load
 
 ### TODO
 
-* Specify tables to dump
 * Better error messages if credentials in .env are wrong, right now it just
   spits out pg_* errors
