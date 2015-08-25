@@ -92,7 +92,7 @@ task load: [:dotenv, 'tmp', '.env']  do |t|
 end
 
 desc 'Download production mongodb'
-task mongo_down do |t|
+task mongo_down: [:dotenv, 'tmp', '.env'] do |t|
   parts = URI.parse ENV['MONGODB_URL']
   db = parts.path[1..-1]
 
@@ -107,7 +107,14 @@ task mongo_down do |t|
 
   command = "mongodump"
 
-  sh command, *cli_args
+  if collections = ENV['COLLECTION'] || ENV['COLLECTIONS']
+    collections = collections.split ','
+    collections.each do |collection|
+      sh command, *cli_args, "--collection=#{collection}"
+    end
+  else
+    sh command, *cli_args
+  end
 end
 
 def bar_create overrides = {}
