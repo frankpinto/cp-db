@@ -1,5 +1,6 @@
 require 'dotenv/tasks'
 require 'ruby-progressbar'
+require 'uri'
 
 task default: %w(.env)
 
@@ -88,6 +89,25 @@ task load: [:dotenv, 'tmp', '.env']  do |t|
   command = "PGPASSWORD=#{ENV['PGPASSWORD']} " + command unless ENV['PGPASSWORD'].nil? || ENV['PGPASSWORD'] == ''
 
   sh command
+end
+
+desc 'Download production mongodb'
+task mongo_down do |t|
+  parts = URI.parse ENV['MONGODB_URL']
+  db = parts.path[1..-1]
+
+  cli_args = [
+    "--host=#{parts.host}",
+    "--port=#{parts.port}",
+    "--db=#{db}",
+    "--username=#{parts.user}",
+    "--password=#{parts.password}",
+    "--out=tmp"
+  ]
+
+  command = "mongodump"
+
+  sh command, *cli_args
 end
 
 def bar_create overrides = {}
