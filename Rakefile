@@ -117,6 +117,21 @@ task mongo_down: [:dotenv, 'tmp', '.env'] do |t|
   end
 end
 
+desc 'Load production mongodb dump into local'
+task mongo_load: [:dotenv, 'tmp', '.env']  do |t|
+  parts = URI.parse ENV['MONGODB_URL']
+  db = parts.path[1..-1]
+
+  cli_args = [
+    "--db=#{ENV['MONGODB_DB']}",
+    "tmp/#{db}"
+  ]
+
+  command = "mongorestore"
+
+  sh command, *cli_args
+end
+
 def bar_create overrides = {}
     options = {
       total: 30,
